@@ -1,0 +1,61 @@
+name: Static Code Analysis Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  analyze-code:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies and Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint bandit flake8
+
+      - name: Run Bandit Security Analysis
+        run: |
+          bandit -r pharmacy_system.py -f txt -o bandit_report.txt || true
+          cat bandit_report.txt
+
+      - name: Run Flake8 Code Style Analysis
+        run: |
+          flake8 pharmacy.py > flake8_report.txt || true
+          cat flake8_report.txt
+
+      - name: Run Pylint Code Quality Analysis
+        run: |
+          pylint pharmacy.py > pylint_report.txt || true
+          cat pylint_report.txt
+
+      - name: Upload Static Analysis Reports as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-reports
+          path: |
+            pylint_report.txt
+            bandit_report.txt
+            flake8_report.txt
+
+      - name: Verify Quality Threshold (Pylint Score >= 9.5)
+        run: |
+          SCORE=$(pylint pharmacy_system.py | grep -oP 'rated at \K[0-9.]+' || echo "0")
+          echo "Current Pylint Score: $SCORE"
+          REQUIRED=9.5
+          if (( $(echo "$SCORE < $REQUIRED" | bc -l) )); then
+            echo "ERROR: Pylint score ($SCORE) is lower than required threshold ($REQUIRED)."
+            exit 1
+          else
+            echo "SUCCESS: Pylint score ($SCORE) meets the required threshold."
+          fi

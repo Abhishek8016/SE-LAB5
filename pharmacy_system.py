@@ -119,3 +119,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Refactored code: Fixed Pylint quality & Flake8 style compliance

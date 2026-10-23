@@ -31,12 +31,12 @@ jobs:
 
       - name: Run Flake8 Code Style Analysis
         run: |
-          flake8 pharmacy.py > flake8_report.txt || true
+          flake8 pharmacy_system.py > flake8_report.txt || true
           cat flake8_report.txt
 
       - name: Run Pylint Code Quality Analysis
         run: |
-          pylint pharmacy.py > pylint_report.txt || true
+          pylint pharmacy_system.py > pylint_report.txt || true
           cat pylint_report.txt
 
       - name: Upload Static Analysis Reports as Artifacts
